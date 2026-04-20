@@ -1,0 +1,333 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ABEL | DEEP INTEL EXAM PROTOCOL</title>
+    <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg-color: #050510;
+            --panel-bg: rgba(0, 0, 40, 0.85);
+            --border-color: #4a90e2;
+            --accent-gold: #f5a623;
+            --hp-color: #ff3366;
+            --mp-color: #00e5ff;
+            --exp-color: #39ff14;
+            --text-main: #e0e0e0;
+        }
+
+        body {
+            background-color: var(--bg-color);
+            color: var(--text-main);
+            font-family: 'Press Start 2P', monospace;
+            margin: 0;
+            height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            overflow: hidden;
+            user-select: none;
+            /* Starfield background */
+            background-image: 
+                radial-gradient(1px 1px at 20px 30px, #ffffff, rgba(0,0,0,0)),
+                radial-gradient(1px 1px at 40px 70px, #ffffff, rgba(0,0,0,0)),
+                radial-gradient(1px 1px at 50px 160px, #ffffff, rgba(0,0,0,0)),
+                radial-gradient(1.5px 1.5px at 90px 40px, #ffffff, rgba(0,0,0,0));
+            background-repeat: repeat;
+            background-size: 200px 200px;
+            animation: space 20s linear infinite;
+        }
+
+        @keyframes space { from { background-position: 0 0; } to { background-position: -200px 200px; } }
+
+        /* CRT Scanline Effect */
+        .scanlines {
+            position: fixed; top: 0; left: 0; width: 100vw; height: 100vh;
+            background: linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.25) 50%), 
+                        linear-gradient(90deg, rgba(255, 0, 0, 0.06), rgba(0, 255, 0, 0.02), rgba(0, 0, 255, 0.06));
+            background-size: 100% 4px, 3px 100%;
+            pointer-events: none;
+            z-index: 100;
+        }
+
+        .hud-container {
+            background: var(--panel-bg);
+            border: 4px solid var(--border-color);
+            border-radius: 8px;
+            width: 90%;
+            max-width: 800px;
+            padding: 20px;
+            box-shadow: 0 0 20px rgba(74, 144, 226, 0.4), inset 0 0 15px rgba(0, 229, 255, 0.2);
+            position: relative;
+            z-index: 10;
+            backdrop-filter: blur(5px);
+        }
+
+        .shake { animation: shake 0.4s cubic-bezier(.36,.07,.19,.97) both; }
+        @keyframes shake {
+            10%, 90% { transform: translate3d(-2px, 0, 0); }
+            20%, 80% { transform: translate3d(4px, 0, 0); }
+            30%, 50%, 70% { transform: translate3d(-6px, 0, 0); }
+            40%, 60% { transform: translate3d(6px, 0, 0); }
+        }
+
+        /* Header & Countdown */
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            border-bottom: 2px dashed rgba(74, 144, 226, 0.5);
+            padding-bottom: 15px;
+            margin-bottom: 20px;
+        }
+        
+        .profile h1 { font-size: 20px; margin: 0 0 10px 0; color: #fff; text-shadow: 2px 2px #000; }
+        .profile p { font-size: 10px; color: var(--accent-gold); margin: 5px 0; line-height: 1.4;}
+
+        .timer-box {
+            background: #000;
+            border: 2px solid var(--accent-gold);
+            padding: 10px;
+            text-align: right;
+            box-shadow: 4px 4px 0px rgba(245, 166, 35, 0.3);
+        }
+        .timer-box .label { font-size: 8px; color: #aaa; margin-bottom: 8px; display: block; }
+        .timer-box .time { font-size: 14px; color: var(--accent-gold); text-shadow: 0 0 5px var(--accent-gold); }
+
+        /* Main Grid */
+        .grid { display: grid; grid-template-columns: 1.2fr 1fr; gap: 20px; }
+
+        @media (max-width: 600px) {
+            .grid { grid-template-columns: 1fr; }
+            .header { flex-direction: column; gap: 15px; }
+            .timer-box { text-align: left; width: 100%; box-sizing: border-box; }
+        }
+
+        .panel { background: rgba(0,0,0,0.4); border: 2px solid rgba(255,255,255,0.1); padding: 15px; }
+        .panel-title { font-size: 10px; color: #aaa; margin: 0 0 15px 0; letter-spacing: 1px; }
+
+        /* Bars */
+        .stat-row { display: flex; align-items: center; margin-bottom: 15px; font-size: 9px; justify-content: space-between;}
+        .stat-label { width: 40%; }
+        .bar-bg { width: 55%; height: 12px; background: #111; border: 2px solid #555; position: relative; }
+        .bar-fill { height: 100%; transition: width 0.4s cubic-bezier(0.4, 0, 0.2, 1); position: relative; overflow: hidden; }
+        
+        /* Gloss effect on bars */
+        .bar-fill::after {
+            content: ''; position: absolute; top: 0; left: 0; right: 0; height: 40%;
+            background: rgba(255,255,255,0.2);
+        }
+
+        .hp-fill { background-color: var(--hp-color); width: 80%; box-shadow: 0 0 10px var(--hp-color); }
+        .mp-fill { background-color: var(--mp-color); width: 100%; box-shadow: 0 0 10px var(--mp-color); }
+        .exp-fill { background-color: var(--exp-color); width: 25%; box-shadow: 0 0 10px var(--exp-color); }
+
+        /* List Items */
+        .list-item { font-size: 9px; margin-bottom: 12px; display: flex; justify-content: space-between; border-bottom: 1px solid rgba(255,255,255,0.05); padding-bottom: 4px;}
+        .list-item span:last-child { color: var(--mp-color); }
+
+        /* Terminal Output Box */
+        .terminal {
+            margin-top: 20px;
+            background: #000;
+            border: 2px solid #333;
+            padding: 15px;
+            font-size: 10px;
+            line-height: 1.6;
+            height: 45px;
+            color: #39ff14;
+            position: relative;
+        }
+        .cursor { display: inline-block; width: 8px; height: 12px; background: #39ff14; animation: blink 1s step-end infinite; vertical-align: middle; margin-left: 2px;}
+        @keyframes blink { 50% { opacity: 0; } }
+
+        /* Action Buttons */
+        .actions { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin-top: 15px; }
+        .btn {
+            background: rgba(0, 229, 255, 0.1);
+            border: 2px solid var(--mp-color);
+            color: var(--mp-color);
+            font-family: 'Press Start 2P', monospace;
+            font-size: 8px;
+            padding: 12px 5px;
+            cursor: pointer;
+            transition: all 0.2s;
+            text-transform: uppercase;
+        }
+        .btn:hover { background: var(--mp-color); color: #000; box-shadow: 0 0 10px var(--mp-color); }
+        .btn:active { transform: scale(0.95); }
+        .btn-gold { border-color: var(--accent-gold); color: var(--accent-gold); }
+        .btn-gold:hover { background: var(--accent-gold); box-shadow: 0 0 10px var(--accent-gold); }
+
+        .footer { text-align: center; font-size: 8px; color: #555; margin-top: 20px; letter-spacing: 2px; }
+    </style>
+</head>
+<body>
+
+<div class="scanlines"></div>
+
+<div class="hud-container" id="hud">
+    <div class="header">
+        <div class="profile">
+            <h1>ABEL KIHARA</h1>
+            <p>> ROLE: Deep Intel CEO</p>
+            <p>> GUILD: Kirinyaga Univ (IT Lvl 2)</p>
+            <p>> GOAL: Google CEO</p>
+        </div>
+        <div class="timer-box">
+            <span class="label">SYSTEM RESUME IN:</span>
+            <span class="time" id="countdown">LOADING...</span>
+        </div>
+    </div>
+
+    <div class="grid">
+        <div class="panel">
+            <h3 class="panel-title">SYSTEM VITALS</h3>
+            <div class="stat-row">
+                <span class="stat-label">HP (Physical)</span>
+                <div class="bar-bg"><div class="bar-fill hp-fill" id="hp"></div></div>
+            </div>
+            <div class="stat-row">
+                <span class="stat-label">MP (Focus)</span>
+                <div class="bar-bg"><div class="bar-fill mp-fill" id="mp"></div></div>
+            </div>
+            <div class="stat-row">
+                <span class="stat-label">EXP (Calculus)</span>
+                <div class="bar-bg"><div class="bar-fill exp-fill" id="exp"></div></div>
+            </div>
+        </div>
+
+        <div class="panel">
+            <h3 class="panel-title">ACTIVE LOADOUT</h3>
+            <div class="list-item"><span>Hardware 1:</span><span>HP 640 G2</span></div>
+            <div class="list-item"><span>Hardware 2:</span><span>realme Note 50</span></div>
+            <div class="list-item"><span>Primary Arcana:</span><span>Python / Flutter</span></div>
+            <div class="list-item"><span>Passive Buff:</span><span>Phonk Playlist</span></div>
+        </div>
+    </div>
+
+    <div class="terminal">
+        <span id="log-text">> Initializing Exam Protocol... GitHub push disabled.</span><span class="cursor"></span>
+    </div>
+
+    <div class="actions">
+        <button class="btn btn-gold" onclick="performAction('study')">⚔️ STUDY LIMITS</button>
+        <button class="btn" onclick="performAction('phonk')">🎧 PLAY PHONK</button>
+        <button class="btn" onclick="performAction('sleep')">💤 SUSPEND</button>
+    </div>
+
+    <div class="footer">DEEP INTEL OPERATIONAL FRAMEWORK v2.0</div>
+</div>
+
+<script>
+    // --- Countdown Engine ---
+    const targetDate = new Date("April 26, 2026 00:00:00").getTime();
+    
+    setInterval(() => {
+        const now = new Date().getTime();
+        const dist = targetDate - now;
+
+        if (dist < 0) {
+            document.getElementById("countdown").innerHTML = "00:00:00:00";
+            document.getElementById("countdown").style.color = "#39ff14";
+            document.getElementById("countdown").style.textShadow = "0 0 10px #39ff14";
+            return;
+        }
+
+        const d = String(Math.floor(dist / (1000 * 60 * 60 * 24))).padStart(2, '0');
+        const h = String(Math.floor((dist % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60))).padStart(2, '0');
+        const m = String(Math.floor((dist % (1000 * 60 * 60)) / (1000 * 60))).padStart(2, '0');
+        const s = String(Math.floor((dist % (1000 * 60)) / 1000)).padStart(2, '0');
+
+        document.getElementById("countdown").innerHTML = `${d}:${h}:${m}:${s}`;
+    }, 1000);
+
+    // --- RPG State Machine ---
+    let state = { hp: 80, mp: 100, exp: 25 };
+    let isTyping = false;
+    let typeQueue = [];
+    const logEl = document.getElementById('log-text');
+    const hudEl = document.getElementById('hud');
+
+    function updateUI() {
+        document.getElementById('hp').style.width = state.hp + '%';
+        document.getElementById('mp').style.width = state.mp + '%';
+        document.getElementById('exp').style.width = state.exp + '%';
+    }
+
+    function typeLog(text) {
+        if (isTyping) {
+            typeQueue.push(text);
+            return;
+        }
+        isTyping = true;
+        logEl.innerHTML = "> ";
+        let i = 0;
+        let interval = setInterval(() => {
+            logEl.innerHTML += text.charAt(i);
+            i++;
+            if (i >= text.length) {
+                clearInterval(interval);
+                isTyping = false;
+                if (typeQueue.length > 0) {
+                    setTimeout(() => typeLog(typeQueue.shift()), 1000);
+                }
+            }
+        }, 30);
+    }
+
+    function triggerShake() {
+        hudEl.classList.remove('shake');
+        void hudEl.offsetWidth; // Force reflow
+        hudEl.classList.add('shake');
+    }
+
+    function performAction(action) {
+        if (state.exp >= 100) return; // Game won state
+
+        if (action === 'study') {
+            if (state.hp >= 15 && state.mp >= 25) {
+                state.hp -= 15;
+                state.mp -= 25;
+                state.exp += 20;
+                triggerShake();
+                typeLog("Abel engages 'Probability & Calculus'. Heavy mental toll. (+20 EXP)");
+            } else {
+                typeLog("WARNING: Insufficient HP/MP to study. Risk of burnout.");
+            }
+        } 
+        else if (action === 'phonk') {
+            if (state.mp < 100) {
+                state.mp = Math.min(100, state.mp + 40);
+                typeLog("Playing Brazilian Funk/Phonk mix. Focus restored! (+40 MP)");
+            } else {
+                typeLog("Focus is already absolute.");
+            }
+        }
+        else if (action === 'sleep') {
+            if (state.hp < 100) {
+                state.hp = Math.min(100, state.hp + 50);
+                typeLog("Hardware suspended. Cooling down... Health restored. (+50 HP)");
+            } else {
+                typeLog("Rest state optimal. Ready to deploy.");
+            }
+        }
+
+        updateUI();
+
+        // Level Up Trigger
+        if (state.exp >= 100) {
+            state.exp = 100;
+            document.getElementById('exp').style.backgroundColor = "#ffcc00"; // Gold
+            document.getElementById('exp').style.boxShadow = "0 0 15px #ffcc00";
+            setTimeout(() => {
+                triggerShake();
+                typeLog("MAX LEVEL REACHED. Exams conquered. Preparing for Google HQ.");
+            }, 1500);
+        }
+    }
+</script>
+
+</body>
+</html>
